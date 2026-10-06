@@ -1,55 +1,82 @@
-/*************************************************************
-  Blynk is a platform with iOS and Android apps to control
-  ESP32, Arduino, Raspberry Pi and the likes over the Internet.
-  You can easily build mobile and web interfaces for any
-  projects by simply dragging and dropping widgets.
+/******************************************************************************
+ * 1. In the Arduino IDE, select:
+ *    Tools -> Board -> Select your board
+ *    Tools -> Port  -> Select your port
+ *    Tools -> Partition Scheme -> "RainMaker 4MB" (or 8MB)
+ *    It is highly recommended to create a custom partition scheme
+ *    optimized for your project.
+ *    For boards with native USB, select:
+ *      Tools -> USB CDC On Boot -> Enabled
+ * 
+ * 2. In BoardConfig.h, configure the LED and button pins.
+ *    Or, select a predefined configuration at the top of this sketch, e.g.:
+ *    #define ARDUINO_XIAO_ESP32C5
+ *
+ * 3. Fill in TEMPLATE_ID and TEMPLATE_NAME from your Blynk Template below.
+ *    Read more: https://bit.ly/BlynkInject
+ *
+ * 4. Install the required libraries:
+ *    http://librarymanager#ArduinoJson          v7.4.3
+ *    http://librarymanager#ArduinoHttpClient    v0.6.2
+ *    http://librarymanager#NimBLE-Arduino       v2.5.1
+ *    http://librarymanager#OneButton            v2.6.2
+ *    http://librarymanager#Adafruit%20NeoPixel  v1.15.5
+ *
+ * 5. Upload the sketch to your board and open the Serial Monitor at 115200 baud.
+ *
+ * 6. Use the Blynk IoT App to provision your device:
+ *    Menu -> Add new device -> Find devices nearby -> Select your device
+ *
+ *****************************************************************************/
 
-    Downloads, docs, tutorials: https://www.blynk.io
-    Sketch generator:           https://examples.blynk.cc
-    Blynk community:            https://community.blynk.cc
-    Follow us:                  https://www.fb.com/blynkapp
-                                https://twitter.com/blynk_app
-
-  Blynk library is licensed under MIT license
- *************************************************************
-  Blynk.Edgent implements:
-  - Blynk.Inject - Dynamic WiFi credentials provisioning
-  - Blynk.Air    - Over The Air firmware updates
-  - Device state indication using a physical LED
-  - Credentials reset using a physical Button
- *************************************************************/
-
-/* Fill in information from your Blynk Template here */
-/* Read more: https://bit.ly/BlynkInject */
 //#define BLYNK_TEMPLATE_ID           "TMPxxxxxx"
 //#define BLYNK_TEMPLATE_NAME         "Device"
 
-#define BLYNK_FIRMWARE_VERSION        "0.1.0"
+/* White labeling (use this ONLY if you have a branded Blynk App) */
+//#define BLYNK_VENDOR_PREFIX         "Blynk"
+//#define BLYNK_DEFAULT_SERVER        "my-dashboard.com"
+
+/* The firmware version (used for OTA updates) */
+#define BLYNK_FIRMWARE_VERSION      "0.1.0"
 
 #define BLYNK_PRINT Serial
 //#define BLYNK_DEBUG
 
-#define APP_DEBUG
-
-// Uncomment your board, or configure a custom board in Settings.h
-//#define USE_ESP32_DEV_MODULE
-//#define USE_ESP32C3_DEV_MODULE
-//#define USE_ESP32S2_DEV_KIT
-//#define USE_WROVER_BOARD
-//#define USE_TTGO_T7
-//#define USE_TTGO_T_OI
-
-#include "BlynkEdgent.h"
+#include <Arduino.h>
+#include <BlynkEdgent.h>
+#include "Interaction.h"
 
 void setup()
 {
   Serial.begin(115200);
-  delay(100);
+  delay(1000);  // Wait for serial monitor (remove if not needed)
+  Serial.println();
 
+  // The amount of time (in seconds) to wait for the user to configure the device.
+  // If configuration is skipped, the device will enter IDLE mode. Default: 10 min
+  BlynkEdgent.setConfigTimeout(10*60);
+
+  // The amount of times the board enters the config mode automatically.
+  // NOTE: 0 means unlimited, and is only useful for testing. Default: 10
+  BlynkEdgent.setConfigSkipLimit(0);
+
+  // Edgent state indication and button interaction
+  interaction.begin();
+  BlynkEdgent.onStateChange([](){
+    BLYNK_LOG("State: %s", BlynkEdgent.getStateName());
+    interaction.updateIndicator();
+  });
+
+  // Initialize Blynk.Edgent
   BlynkEdgent.begin();
+
+  // Attach Blynk console to the Serial
+  BlynkEdgent.initConsole(BLYNK_PRINT);
 }
 
-void loop() {
+void loop()
+{
   BlynkEdgent.run();
+  interaction.run();
+  delay(1);
 }
-
