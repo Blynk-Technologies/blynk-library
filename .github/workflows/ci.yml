@@ -19,20 +19,20 @@ jobs:
         include:
         - example: examples/Blynk.Edgent/Edgent_ESP32
           board: esp32dev
-          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER'
+          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER' --project-option='lib_deps=NimBLE-Arduino' --project-option='board_build.partitions=min_spiffs.csv'
           platform: *esp32_core_v2
         - example: examples/Blynk.Edgent/Edgent_ESP32
           board: esp32dev
-          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER'
+          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER' --project-option='lib_deps=NimBLE-Arduino' --project-option='board_build.partitions=min_spiffs.csv'
           platform: *esp32_core_v3
         - example: examples/Blynk.Edgent/Edgent_ESP8266
           board: nodemcuv2
-          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER'
+          extra_args: --project-option='build_flags=-DBOARD_LED_PIN_WS2812 -DUSE_TICKER' --project-option='lib_deps=Preferences'
         - example: examples/Blynk.Edgent/Edgent_NCP
           board: uno_r4_wifi
-        - example: examples/Blynk.Edgent/Edgent_Wio_Terminal
-          board: seeed_wio_terminal
-          extra_args: --project-option='lib_deps=Seeed Arduino rpcWiFi, ArduinoHttpClient'
+        #- example: examples/Blynk.Edgent/Edgent_Wio_Terminal
+        #  board: seeed_wio_terminal
+        #  extra_args: --project-option='lib_deps=SPI, Seeed Arduino rpcWiFi, Seeed Arduino rpcBLE, Preferences'
 
     steps:
       - uses: actions/checkout@v6
@@ -53,9 +53,14 @@ jobs:
 
       - name: Install PlatformIO libraries
         run: |
+          pio pkg install -g -l "https://github.com/Blynk-Technologies/Edgent-Arduino/archive/refs/heads/main.zip"
           pio pkg install -g -l "adafruit/Adafruit NeoPixel"
           pio pkg install -g -l "adafruit/Adafruit Unified Sensor"
           pio pkg install -g -l "jandrassy/ArduinoOTA"
+          pio pkg install -g -l "bblanchon/ArduinoJson"
+          pio pkg install -g -l "mathertel/OneButton"
+          pio pkg install -g -l "arduino-libraries/ArduinoHttpClient"
+
 
       - name: Build PlatformIO example
         run: |
