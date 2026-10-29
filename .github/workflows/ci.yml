@@ -10,6 +10,14 @@ env:
   ESP32_CORE_V3: &esp32_core_v3 --project-option='platform=https://github.com/pioarduino/platform-espressif32/releases/latest/download/platform-espressif32.zip'
 
 jobs:
+  esp8266-ssl-test:
+    name: ESP8266 TLS connection tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Run offline adapter tests
+        run: python3 tests/run_esp8266_ssl.py
+
   platformio-edgent:
     name: Edgent - ${{ matrix.example }}
     runs-on: ubuntu-latest

@@ -56,6 +56,7 @@ class BlynkArduinoClientSecure
 public:
     BlynkArduinoClientSecure(Client& client)
         : BlynkArduinoClientGen<Client>(client)
+        , sntpStarted(false)
     {
         this->client->setBufferSizes(BLYNK_SSL_RX_BUF_SIZE, BLYNK_SSL_TX_BUF_SIZE);
     }
@@ -72,14 +73,14 @@ public:
 
         time_t now = time(nullptr);
         if (now < 100000) {
-            // Synchronize time useing SNTP. This is necessary to verify that
+            // Synchronize time using SNTP. This is necessary to verify that
             // the TLS certificates offered by the server are currently valid.
-            configTime(0, 0, "pool.ntp.org", "time.nist.gov");
-
-            while (now < 100000) {
-                delay(100);
-                now = time(nullptr);
+            if (!sntpStarted) {
+                configTime(0, 0, "pool.ntp.org", "time.nist.gov");
+                sntpStarted = true;
             }
+            // Let the application run while synchronization is pending.
+            return false;
         }
         struct tm timeinfo;
         gmtime_r(&now, &timeinfo);
@@ -98,6 +99,9 @@ public:
         }
         return true;
     }
+
+private:
+    bool sntpStarted;
 
 };
 
